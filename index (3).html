@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AR & Payment Tracker – Prototype</title>
+<style>
+:root{
+  --ink:#2B1A1D; --muted:#7A6A66; --line:#E6D9C3; --paper:#FBF5E9; --card:#FFFDF8; --side:#4A1220;
+  --brand:#6D1F2F; --brand-soft:#F3E3DA; --ok:#2F7D4F; --ok-soft:#E4F3EA; --bad:#B3261E; --bad-soft:#FBE3DF; --warn-soft:#FFF4D6;
+  --font:"Segoe UI","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--brand);font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #C9A27A;outline-offset:2px}
+.hidden{display:none!important}
+
+/* login */
+#login{min-height:100%;display:grid;place-items:center;padding:24px}
+.login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:28px}
+.login-box h1{margin:0 0 4px;font-size:22px}
+.login-box p{margin:0 0 18px;color:var(--muted)}
+.demo{margin-top:16px;padding:10px 12px;background:var(--brand-soft);border-radius:6px;font-size:13px;color:var(--ink)}
+
+/* layout */
+#app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--side);color:#fff;padding:18px 0;display:flex;flex-direction:column}
+aside .logo{padding:0 20px 18px;font-weight:700;font-size:17px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:10px}
+aside .logo small{display:block;font-weight:400;font-size:12px;opacity:.7;margin-top:2px}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;color:#EBD5CE;padding:11px 20px;cursor:pointer;border-left:4px solid transparent}
+nav button:hover{background:rgba(255,255,255,.07)}
+nav button.active{color:#fff;background:rgba(255,255,255,.12);border-left-color:#E8C9A0;font-weight:600}
+aside .who{margin-top:auto;padding:14px 20px;border-top:1px solid rgba(255,255,255,.15);font-size:13px;color:#EBD5CE}
+aside .who button{margin-top:8px;background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:6px 12px;cursor:pointer}
+main{padding:26px 32px;background:var(--paper);margin:18px;border-radius:10px;min-width:0}
+h2{margin:0 0 4px;font-size:24px}
+.sub{color:var(--muted);margin:0 0 20px}
+
+/* components */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.stat span{display:block;color:var(--muted);font-size:13px}
+.stat strong{font-size:24px}
+.stat.bad{background:var(--bad-soft);border-color:#EBC4BE}
+.stat.ok{background:var(--ok-soft);border-color:#BFDECB}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:22px}
+.panel h3{margin:0 0 12px;font-size:17px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar .grow{flex:1}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--brand);color:#fff;text-align:left;padding:9px 10px;font-weight:600}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:nth-child(even) td{background:#FBF6EC}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--brand-soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.wrap{overflow-x:auto}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}
+.badge.cur{background:var(--brand-soft);color:var(--brand)}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+
+label{display:block;font-weight:600;margin:12px 0 4px;font-size:14px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #CDBBA4;border-radius:6px;background:#fff}
+input[readonly]{background:var(--paper);font-weight:700}
+.form{max-width:520px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{display:inline-block;width:auto;border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:600}
+.btn:hover{background:#571827}
+.btn.ghost{background:#fff;color:var(--brand)}
+.btn.ghost:hover{background:var(--brand-soft)}
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.hint{margin-top:10px;font-weight:600}
+.hint.ok{color:var(--ok)} .hint.bad{color:var(--bad)}
+.toolbar input,.toolbar select{width:auto}
+.toolbar input.search{min-width:240px}
+.link{background:none;border:0;color:var(--brand);cursor:pointer;padding:0;font-weight:600;text-decoration:underline}
+#toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+dialog{border:0;border-radius:10px;padding:22px;max-width:420px;width:92%;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(43,26,29,.5)}
+.err{color:var(--bad);font-weight:600;min-height:20px;margin-top:8px}
+
+@media(max-width:800px){
+  #app{grid-template-columns:1fr}
+  aside{flex-direction:row;flex-wrap:wrap;padding:8px}
+  aside .logo{border:0;margin:0;padding:6px 10px}
+  nav{display:flex;flex-wrap:wrap}
+  nav button{padding:8px 10px;border-left:0}
+  aside .who{margin:0 0 0 auto;border:0;padding:6px 10px}
+  main{padding:18px 14px;margin:10px}
+  .row2{grid-template-columns:1fr}
+}
+@media print{
+  aside,.toolbar,.actions,#toast{display:none!important}
+  #app{display:block}
+  main{padding:0;margin:0;background:none}
+  body{background:#fff}
+  th{background:#eee!important;color:#000!important;-webkit-print-color-adjust:exact}
+}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login">
+  <form class="login-box" id="loginForm" autocomplete="off">
+    <h1>AR & Payment Tracker</h1>
+    <p>Log in to manage customer credit and payments.</p>
+    <label for="lu">Username</label>
+    <input id="lu" required>
+    <label for="lp">Password</label>
+    <input id="lp" type="password" required>
+    <div class="err" id="lerr" role="alert"></div>
+    <div class="actions"><button class="btn" type="submit">Log in</button></div>
+    <div class="demo"><b>Demo accounts</b><br>Owner: <code>owner</code> / <code>owner123</code><br>Staff: <code>staff</code> / <code>staff123</code></div>
+  </form>
+</section>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <aside>
+    <div class="logo">AR & Payment Tracker<small>Bulan, Sorsogon · prototype</small></div>
+    <nav id="nav"></nav>
+    <div class="who"><span id="whoText"></span><br><button id="logout">Log out</button></div>
+  </aside>
+  <main id="main" tabindex="-1"></main>
+</div>
+
+<dialog id="dlg"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const peso=n=>new Intl.NumberFormat('en-PH',{style:'currency',currency:'PHP'}).format(n);
+const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const today=()=>iso(new Date());
+const addDays=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const fmtDate=s=>s?new Date(s+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'}):'—';
+let toastT;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500)};
+
+/* ---------- data (saved in this browser only) ---------- */
+const KEY='ar_prototype_v2';
+function seed(){
+  return {
+    users:[{u:'owner',p:'owner123',name:'Owner',role:'Owner'},{u:'staff',p:'staff123',name:'Staff',role:'Staff'}],
+    customers:[
+      {id:1,name:'Maria Santos',contact:'0917-000-0001'},
+      {id:2,name:'Juan Dela Cruz',contact:'0917-000-0002'},
+      {id:3,name:'Ana Reyes',contact:'0917-000-0003'},
+      {id:4,name:'Pedro Garcia',contact:'0917-000-0004'}],
+    credits:[
+      {id:1,cid:1,date:addDays(-12),due:addDays(14),amount:3000,note:'Groceries'},
+      {id:2,cid:2,date:addDays(-40),due:addDays(-10),amount:4250,note:'Feeds and supplies'},
+      {id:3,cid:3,date:addDays(-20),due:addDays(5),amount:2000,note:'School supplies'},
+      {id:4,cid:4,date:addDays(-5),due:addDays(8),amount:780,note:'Hardware items'}],
+    payments:[
+      {id:1,cid:1,date:addDays(-3),amount:1500},
+      {id:2,cid:2,date:addDays(-15),amount:1000},
+      {id:3,cid:3,date:addDays(-2),amount:2000}]
+  };
+}
+let DB;
+function load(){try{const r=localStorage.getItem(KEY);DB=r?JSON.parse(r):seed()}catch(e){DB=seed()}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+const nextId=a=>a.reduce((m,x)=>Math.max(m,x.id),0)+1;
+
+/* ---------- business logic ---------- */
+// Payments are applied to the oldest credit first.
+function account(cid){
+  const credits=DB.credits.filter(c=>c.cid===cid).sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
+  let paid=DB.payments.filter(p=>p.cid===cid).reduce((s,p)=>s+p.amount,0);
+  const totalPaid=paid, totalCredit=credits.reduce((s,c)=>s+c.amount,0);
+  let nextDue=null;
+  for(const c of credits){
+    const used=Math.min(paid,c.amount);paid-=used;
+    if(c.amount-used>0.005&&(!nextDue||c.due<nextDue))nextDue=c.due;
+  }
+  const balance=Math.round((totalCredit-totalPaid)*100)/100;
+  const overdue=balance>0.005&&nextDue&&nextDue<today();
+  const status=balance<=0.005?'Paid':(overdue?'Overdue':'Current');
+  return {totalCredit,totalPaid,balance:Math.max(balance,0),nextDue:balance>0.005?nextDue:null,status,overdue};
+}
+const accounts=()=>DB.customers.map(c=>({...c,...account(c.id)}));
+const badge=s=>`<span class="badge ${s==='Paid'?'ok':s==='Overdue'?'bad':'cur'}">${s}</span>`;
+const cname=id=>esc((DB.customers.find(c=>c.id===id)||{}).name||'Unknown');
+
+/* ---------- session & navigation ---------- */
+let user=null,view='dashboard',param=null;
+const NAV=[['dashboard','Dashboard'],['customers','Customers'],['credit','Record Credit'],['payment','Record Payment'],['overdue','Overdue Accounts'],['reports','Reports'],['users','Manage Users','Owner']];
+
+$('#loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const u=DB.users.find(x=>x.u===$('#lu').value.trim()&&x.p===$('#lp').value);
+  if(!u){$('#lerr').textContent='Username or password is incorrect. Check the demo accounts below and try again.';return}
+  user=u;$('#lerr').textContent='';$('#login').classList.add('hidden');$('#app').classList.remove('hidden');
+  $('#whoText').textContent=u.name+' ('+u.role+')';go('dashboard');
+});
+$('#logout').addEventListener('click',()=>{user=null;$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#lu').value='';$('#lp').value=''});
+
+function go(v,p=null){
+  view=v;param=p;
+  $('#nav').innerHTML=NAV.filter(n=>!n[2]||n[2]===user.role).map(n=>`<button data-v="${n[0]}" class="${n[0]===v||(v==='detail'&&n[0]==='customers')?'active':''}">${n[1]}</button>`).join('');
+  $('#nav').querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+  ({dashboard,customers,detail,credit,payment,overdue,reports,users})[v]();
+  $('#main').focus();window.scrollTo(0,0);
+}
+
+/* ---------- views ---------- */
+function dashboard(){
+  const a=accounts();
+  const outstanding=a.reduce((s,x)=>s+x.balance,0);
+  const m=today().slice(0,7);
+  const collected=DB.payments.filter(p=>p.date.startsWith(m)).reduce((s,p)=>s+p.amount,0);
+  const over=a.filter(x=>x.overdue);
+  const recent=[...DB.credits.map(c=>({date:c.date,cid:c.cid,type:'Credit sale',amount:c.amount,id:c.id,k:'c'})),...DB.payments.map(p=>({date:p.date,cid:p.cid,type:'Payment',amount:p.amount,id:p.id,k:'p'}))]
+    .sort((x,y)=>y.date.localeCompare(x.date)||y.id-x.id).slice(0,6);
+  $('#main').innerHTML=`
+  <h2>Dashboard</h2><p class="sub">Where your credit accounts stand today.</p>
+  <div class="cards">
+    <div class="stat"><span>Total receivables</span><strong>${peso(outstanding)}</strong></div>
+    <div class="stat ok"><span>Collected this month</span><strong>${peso(collected)}</strong></div>
+    <div class="stat ${over.length?'bad':''}"><span>Overdue accounts</span><strong>${over.length}</strong></div>
+    <div class="stat"><span>Active customers</span><strong>${a.filter(x=>x.balance>0).length}</strong></div>
+  </div>
+  <div class="panel"><h3>Recent activity</h3><div class="wrap">${recent.length?`<table><tr><th>Date</th><th>Customer</th><th>Type</th><th class="num">Amount</th></tr>
+  ${recent.map(r=>`<tr><td>${fmtDate(r.date)}</td><td>${cname(r.cid)}</td><td>${r.type}</td><td class="num">${peso(r.amount)}</td></tr>`).join('')}</table>`:'<div class="empty">No transactions yet. Record a credit sale to get started.</div>'}</div></div>`;
+}
+
+function customers(){
+  $('#main').innerHTML=`
+  <h2>Customers</h2><p class="sub">Select a customer to see their history.</p>
+  <div class="toolbar"><input class="search" id="q" placeholder="Search customer…" aria-label="Search customer"><span class="grow"></span><button class="btn" id="addC">+ Add customer</button></div>
+  <div class="panel"><div class="wrap" id="clist"></div></div>`;
+  const draw=()=>{
+    const q=$('#q').value.toLowerCase();
+    const rows=accounts().filter(c=>c.name.toLowerCase().includes(q));
+    $('#clist').innerHTML=rows.length?`<table><tr><th>Customer</th><th>Contact</th><th class="num">Balance</th><th>Due date</th><th>Status</th></tr>
+    ${rows.map(c=>`<tr class="click" data-id="${c.id}" tabindex="0"><td>${esc(c.name)}</td><td>${esc(c.contact)}</td><td class="num">${peso(c.balance)}</td><td>${fmtDate(c.nextDue)}</td><td>${badge(c.status)}</td></tr>`).join('')}</table>`:'<div class="empty">No customer matches that search. Try a different name or add a new customer.</div>';
+    $('#clist').querySelectorAll('tr.click').forEach(r=>{r.onclick=()=>go('detail',+r.dataset.id);r.onkeydown=e=>{if(e.key==='Enter')go('detail',+r.dataset.id)}});
+  };
+  $('#q').oninput=draw;draw();
+  $('#addC').onclick=()=>{
+    const d=$('#dlg');
+    d.innerHTML=`<form method="dialog" id="cf"><h3 style="margin-top:0">Add customer</h3>
+      <label for="cn">Full name</label><input id="cn" required>
+      <label for="cc">Contact number</label><input id="cc" placeholder="09XX-XXX-XXXX">
+      <div class="actions"><button class="btn" value="ok">Save customer</button><button class="btn ghost" value="x" formnovalidate>Cancel</button></div></form>`;
+    d.showModal();
+    $('#cf').onsubmit=e=>{
+      if(e.submitter&&e.submitter.value==='x')return;
+      const n=$('#cn').value.trim();if(!n)return;
+      DB.customers.push({id:nextId(DB.customers),name:n,contact:$('#cc').value.trim()});save();toast('Customer saved');customers();
+    };
+  };
+}
+
+function detail(){
+  const c=DB.customers.find(x=>x.id===param);const a=account(c.id);
+  const tx=[...DB.credits.filter(x=>x.cid===c.id).map(x=>({date:x.date,type:'Credit sale',amount:x.amount,info:'Due '+fmtDate(x.due)+(x.note?' · '+x.note:'')})),
+            ...DB.payments.filter(x=>x.cid===c.id).map(x=>({date:x.date,type:'Payment',amount:x.amount,info:''}))].sort((p,q)=>q.date.localeCompare(p.date));
+  $('#main').innerHTML=`
+  <button class="link" id="back">← All customers</button>
+  <h2 style="margin-top:8px">${esc(c.name)}</h2><p class="sub">${esc(c.contact||'No contact number')}</p>
+  <div class="cards">
+    <div class="stat"><span>Total credit</span><strong>${peso(a.totalCredit)}</strong></div>
+    <div class="stat ok"><span>Total paid</span><strong>${peso(a.totalPaid)}</strong></div>
+    <div class="stat ${a.overdue?'bad':''}"><span>Balance (${a.status})</span><strong>${peso(a.balance)}</strong></div>
+    <div class="stat"><span>Next due date</span><strong style="font-size:19px">${fmtDate(a.nextDue)}</strong></div>
+  </div>
+  <div class="actions" style="margin:0 0 18px"><button class="btn" id="bc">Record credit</button><button class="btn ghost" id="bp">Record payment</button></div>
+  <div class="panel"><h3>History</h3><div class="wrap">${tx.length?`<table><tr><th>Date</th><th>Type</th><th>Details</th><th class="num">Amount</th></tr>${tx.map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${t.type}</td><td>${esc(t.info)}</td><td class="num">${peso(t.amount)}</td></tr>`).join('')}</table>`:'<div class="empty">No transactions yet for this customer.</div>'}</div></div>`;
+  $('#back').onclick=()=>go('customers');$('#bc').onclick=()=>go('credit',c.id);$('#bp').onclick=()=>go('payment',c.id);
+}
+
+function custOptions(sel){return DB.customers.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(c.name)}</option>`).join('')}
+
+function credit(){
+  $('#main').innerHTML=`
+  <h2>Record Credit</h2><p class="sub">Add goods or services a customer will pay for later.</p>
+  <form class="panel form" id="f" novalidate>
+    <label for="c">Customer</label><select id="c">${custOptions(param)}</select>
+    <div class="row2"><div><label for="a">Amount (₱)</label><input id="a" type="number" min="0.01" step="0.01" required></div>
+    <div><label for="d">Transaction date</label><input id="d" type="date" value="${today()}" required></div></div>
+    <label for="du">Due date</label><input id="du" type="date" value="${addDays(30)}" required>
+    <label for="n">Notes (optional)</label><input id="n" placeholder="e.g. rice and canned goods">
+    <div class="err" id="e" role="alert"></div>
+    <div class="actions"><button class="btn" type="submit">Save credit sale</button><button class="btn ghost" type="button" id="x">Cancel</button></div>
+  </form>`;
+  $('#x').onclick=()=>go('dashboard');
+  $('#f').onsubmit=e=>{
+    e.preventDefault();
+    const amt=parseFloat($('#a').value),d=$('#d').value,du=$('#du').value;
+    if(!(amt>0)){$('#e').textContent='Enter an amount greater than zero.';return}
+    if(!d||!du){$('#e').textContent='Enter both the transaction date and the due date.';return}
+    if(du<d){$('#e').textContent='The due date cannot be earlier than the transaction date.';return}
+    DB.credits.push({id:nextId(DB.credits),cid:+$('#c').value,date:d,due:du,amount:amt,note:$('#n').value.trim()});save();
+    toast('Credit sale saved');go('detail',+$('#c').value);
+  };
+}
+
+function payment(){
+  $('#main').innerHTML=`
+  <h2>Record Payment</h2><p class="sub">Full and partial payments are both supported.</p>
+  <form class="panel form" id="f" novalidate>
+    <label for="c">Customer</label><select id="c">${custOptions(param)}</select>
+    <label for="b">Outstanding balance</label><input id="b" readonly>
+    <div class="row2"><div><label for="a">Payment amount (₱)</label><input id="a" type="number" min="0.01" step="0.01" required></div>
+    <div><label for="d">Payment date</label><input id="d" type="date" value="${today()}" required></div></div>
+    <label for="t">Payment type</label><input id="t" readonly value="—">
+    <div class="hint" id="h"></div>
+    <div class="err" id="e" role="alert"></div>
+    <div class="actions"><button class="btn" type="submit">Save payment</button><button class="btn ghost" type="button" id="x">Cancel</button></div>
+  </form>`;
+  const bal=()=>account(+$('#c').value).balance;
+  const upd=()=>{
+    const b=bal(),a=parseFloat($('#a').value);
+    $('#b').value=peso(b);$('#e').textContent='';
+    if(!(a>0)){$('#t').value='—';$('#h').textContent='';return}
+    $('#t').value=a>=b-0.005?'Full payment':'Partial payment';
+    const r=b-a;
+    $('#h').className='hint '+(r<0?'bad':'ok');
+    $('#h').textContent=r<0?'The amount is more than the balance by '+peso(-r)+'.':'Remaining balance after payment: '+peso(r);
+  };
+  $('#c').onchange=upd;$('#a').oninput=upd;upd();
+  $('#x').onclick=()=>go('dashboard');
+  $('#f').onsubmit=e=>{
+    e.preventDefault();
+    const a=parseFloat($('#a').value),b=bal();
+    if(!(a>0)){$('#e').textContent='Enter a payment amount greater than zero.';return}
+    if(b<=0.005){$('#e').textContent='This customer has no balance to pay.';return}
+    if(a>b+0.005){$('#e').textContent='The payment is more than the outstanding balance of '+peso(b)+'. Lower the amount.';return}
+    if(!$('#d').value){$('#e').textContent='Enter the payment date.';return}
+    DB.payments.push({id:nextId(DB.payments),cid:+$('#c').value,date:$('#d').value,amount:a});save();
+    toast('Payment saved');go('detail',+$('#c').value);
+  };
+}
+
+function overdue(){
+  const rows=accounts().filter(x=>x.overdue).sort((a,b)=>a.nextDue.localeCompare(b.nextDue));
+  const daysLate=d=>Math.floor((new Date(today())-new Date(d))/86400000);
+  $('#main').innerHTML=`<h2>Overdue Accounts</h2><p class="sub">Customers who passed a due date with a balance still unpaid.</p>
+  <div class="panel"><div class="wrap">${rows.length?`<table><tr><th>Customer</th><th>Contact</th><th>Due date</th><th class="num">Days late</th><th class="num">Balance</th><th></th></tr>
+  ${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.contact)}</td><td>${fmtDate(r.nextDue)}</td><td class="num">${daysLate(r.nextDue)}</td><td class="num">${peso(r.balance)}</td><td><button class="link" data-id="${r.id}">Record payment</button></td></tr>`).join('')}</table>`:'<div class="empty">No overdue accounts. All balances are within their due dates.</div>'}</div></div>`;
+  $('#main').querySelectorAll('button.link').forEach(b=>b.onclick=()=>go('payment',+b.dataset.id));
+}
+
+function reports(){
+  $('#main').innerHTML=`<h2>Accounts Receivable Report</h2><p class="sub">Credit, payments and balance per customer for a chosen period.</p>
+  <div class="toolbar"><label style="margin:0">From <input type="date" id="f1" value="${today().slice(0,8)+'01'}"></label>
+  <label style="margin:0">To <input type="date" id="f2" value="${today()}"></label>
+  <button class="btn" id="g">Generate report</button><span class="grow"></span>
+  <button class="btn ghost" id="pr">Print</button><button class="btn ghost" id="csv">Save as CSV</button></div>
+  <div class="panel"><div class="wrap" id="rep"></div></div>`;
+  let rows=[];
+  const gen=()=>{
+    const a=$('#f1').value,b=$('#f2').value;
+    if(!a||!b||a>b){$('#rep').innerHTML='<div class="empty">Choose a start date that is on or before the end date.</div>';rows=[];return}
+    rows=DB.customers.map(c=>{
+      const cr=DB.credits.filter(x=>x.cid===c.id&&x.date>=a&&x.date<=b).reduce((s,x)=>s+x.amount,0);
+      const pd=DB.payments.filter(x=>x.cid===c.id&&x.date>=a&&x.date<=b).reduce((s,x)=>s+x.amount,0);
+      const ac=account(c.id);return {name:c.name,cr,pd,bal:ac.balance,status:ac.status};
+    });
+    const tot=rows.reduce((s,r)=>s+r.bal,0);
+    $('#rep').innerHTML=`<p style="margin-top:0"><b>Period:</b> ${fmtDate(a)} – ${fmtDate(b)}</p>
+    <table><tr><th>Customer</th><th class="num">Credit in period</th><th class="num">Paid in period</th><th class="num">Current balance</th><th>Status</th></tr>
+    ${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${peso(r.cr)}</td><td class="num">${peso(r.pd)}</td><td class="num">${peso(r.bal)}</td><td>${badge(r.status)}</td></tr>`).join('')}</table>
+    <p style="font-size:17px"><b>Total outstanding: ${peso(tot)}</b></p>`;
+  };
+  $('#g').onclick=gen;gen();
+  $('#pr').onclick=()=>window.print();
+  $('#csv').onclick=()=>{
+    if(!rows.length){toast('Generate a report first');return}
+    const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv=[['Customer','Credit in period','Paid in period','Current balance','Status'],...rows.map(r=>[r.name,r.cr,r.pd,r.bal,r.status])].map(r=>r.map(q).join(',')).join('\n');
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const l=document.createElement('a');l.href=url;l.download='ar-report.csv';l.click();URL.revokeObjectURL(url);
+  };
+}
+
+function users(){
+  $('#main').innerHTML=`<h2>Manage Users</h2><p class="sub">Only the owner can add people who may use the system.</p>
+  <div class="panel"><div class="wrap"><table><tr><th>Name</th><th>Username</th><th>Role</th></tr>${DB.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.u)}</td><td>${esc(u.role)}</td></tr>`).join('')}</table></div></div>
+  <form class="panel form" id="f"><h3>Add staff account</h3>
+    <label for="n">Name</label><input id="n" required>
+    <label for="un">Username</label><input id="un" required>
+    <label for="pw">Password</label><input id="pw" type="password" minlength="6" required>
+    <div class="err" id="e" role="alert"></div>
+    <div class="actions"><button class="btn" type="submit">Add staff</button><button class="btn ghost" type="button" id="rs">Reset demo data</button></div></form>`;
+  $('#f').onsubmit=e=>{
+    e.preventDefault();const un=$('#un').value.trim();
+    if(DB.users.some(u=>u.u===un)){$('#e').textContent='That username is already taken. Choose another.';return}
+    DB.users.push({u:un,p:$('#pw').value,name:$('#n').value.trim(),role:'Staff'});save();toast('Staff account added');users();
+  };
+  $('#rs').onclick=()=>{if(confirm('Reset all data back to the sample records?')){DB=seed();save();toast('Demo data reset');users()}};
+}
+
+load();
+</script>
+</body>
+</html>
