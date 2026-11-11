@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AR & Payment Tracker – Prototype</title>
+<title>Accounts Receivable & Payment Tracker – Prototype</title>
 <style>
 :root{
   --ink:#2B1A1D; --muted:#7A6A66; --line:#E6D9C3; --paper:#FBF5E9; --card:#FFFDF8; --side:#4A1220;
@@ -109,7 +109,7 @@ dialog::backdrop{background:rgba(43,26,29,.5)}
 <!-- LOGIN -->
 <section id="login">
   <form class="login-box" id="loginForm" autocomplete="off">
-    <h1>AR & Payment Tracker</h1>
+    <h1>Accoubts Receivable & Payment Tracker</h1>
     <p>Log in to manage customer credit and payments.</p>
     <label for="lu">Username</label>
     <input id="lu" required>
@@ -124,7 +124,7 @@ dialog::backdrop{background:rgba(43,26,29,.5)}
 <!-- APP -->
 <div id="app" class="hidden">
   <aside>
-    <div class="logo">AR & Payment Tracker<small>Bulan, Sorsogon · prototype</small></div>
+    <div class="logo">Accounts Receivable & Payment Tracker<small>Bulan, Sorsogon · prototype</small></div>
     <nav id="nav"></nav>
     <div class="who"><span id="whoText"></span><br><button id="logout">Log out</button></div>
   </aside>
@@ -151,15 +151,15 @@ function seed(){
   return {
     users:[{u:'owner',p:'owner123',name:'Owner',role:'Owner'},{u:'staff',p:'staff123',name:'Staff',role:'Staff'}],
     customers:[
-      {id:1,name:'Maria Santos',contact:'0917-000-0001'},
-      {id:2,name:'Juan Dela Cruz',contact:'0917-000-0002'},
-      {id:3,name:'Ana Reyes',contact:'0917-000-0003'},
-      {id:4,name:'Pedro Garcia',contact:'0917-000-0004'}],
+      {id:1,name:'Marian Amor',contact:'0909-774-396'},
+      {id:2,name:'Merry Cristobal',contact:'0910-496-4815'},
+      {id:3,name:'Chariez Diolata',contact:'0981-102-1635'},
+      {id:4,name:'Elyca Gipanao',contact:'0995-290-9686'}],
     credits:[
       {id:1,cid:1,date:addDays(-12),due:addDays(14),amount:3000,note:'Groceries'},
       {id:2,cid:2,date:addDays(-40),due:addDays(-10),amount:4250,note:'Feeds and supplies'},
       {id:3,cid:3,date:addDays(-20),due:addDays(5),amount:2000,note:'School supplies'},
-      {id:4,cid:4,date:addDays(-5),due:addDays(8),amount:780,note:'Hardware items'}],
+      {id:4,cid:4,date:addDays(-5),due:addDays(8),amount:780,note:'Rice sacks'}],
     payments:[
       {id:1,cid:1,date:addDays(-3),amount:1500},
       {id:2,cid:2,date:addDays(-15),amount:1000},
